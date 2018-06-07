@@ -1,7 +1,7 @@
 {
-  "name": "forge-react-boiler",
-  "version": "2.0.0",
-  "description": "React+ Node.js Boilerplate project for Autodesk Forge Platform Web Services",
+  "name": "bim-cost-docusign",
+  "version": "1.0.0",
+  "description": "",
   "scripts": {
     "build-server": "babel --presets env,stage-0 --plugins transform-decorators-legacy ./src/server -d ./bin/server",
     "build-prod": "cross-env NODE_ENV=production npm run build",
@@ -13,18 +13,14 @@
   "author": "Philippe Leefsma",
   "license": "MIT",
   "keywords": [
-    "autodesk",
-    "forge",
-    "reactjs",
-    "node.js",
-    "express"
+    "autodesk"
   ],
   "engines": {
     "node": "8.9.x"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Autodesk-Forge/forge-react-boiler.nodejs.git"
+    "url": "git+https://github.com/leefsmp/bim-cost-docusign.git"
   },
   "dependencies": {
     "adm-zip": "^0.4.7",

@@ -3,6 +3,7 @@ import createStore from './createStore'
 
 //Services
 import ServiceManager from 'SvcManager'
+import DocusignSvc from 'DocusignSvc'
 import StorageSvc from 'StorageSvc'
 import NotifySvc from 'NotifySvc'
 import DialogSvc from 'DialogSvc'
@@ -27,6 +28,10 @@ const notifySvc = new NotifySvc()
 
 const dialogSvc = new DialogSvc()
 
+const docusignSvc = new DocusignSvc({
+  apiUrl: '/api/docusign'
+})
+
 const costSvc = new CostSvc({
   apiUrl: '/api/cost'
 })
@@ -34,6 +39,7 @@ const costSvc = new CostSvc({
 // ========================================================
 // Services Registration
 // ========================================================
+ServiceManager.registerService(docusignSvc)
 ServiceManager.registerService(storageSvc)
 ServiceManager.registerService(socketSvc)
 ServiceManager.registerService(dialogSvc)

@@ -60,8 +60,8 @@ export default class AboutDlg extends React.Component {
                <br/>
                Source on github:
                <br/>
-               <a href="https://github.com/Autodesk-Forge/forge-react-boiler.nodejs" target="_blank">
-               Forge React Boiler
+               <a href="https://github.com/leefsmp/bim-cost-docusign" target="_blank">
+               BIM Cost | Docusign
                </a>
              </div>
           </div>

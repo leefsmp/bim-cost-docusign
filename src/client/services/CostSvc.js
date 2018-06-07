@@ -28,8 +28,65 @@ export default class CostSvc extends BaseSvc {
   //
   //
   /////////////////////////////////////////////////////////////////
-  getSCOs (conatinerId = '4fe80261-61b5-11e8-9b9c-8b974249ad4c') {
+  getSCOs (containerId = '4fe80261-61b5-11e8-9b9c-8b974249ad4c') {
 
-    return this.api.ajax(`/${conatinerId}/scos`)
+    return this.api.ajax(`/${containerId}/scos`)
+  }
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //
+  /////////////////////////////////////////////////////////////////
+  getDocInfo (scoId, containerId = '4fe80261-61b5-11e8-9b9c-8b974249ad4c') {
+
+    return this.api.ajax(`/${containerId}/scos/${scoId}/doc`)
+  }
+
+  /////////////////////////////////////////////////////////
+  //
+  //
+  /////////////////////////////////////////////////////////
+  requestSignature (email, urn) {
+
+    const url = `/sign`
+
+    const data = {
+      email,
+      urn
+    }
+
+    return this.api.ajax({
+      url: url,
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      data: JSON.stringify(data)
+    })
+  }
+
+  /////////////////////////////////////////////////////////
+  //
+  //
+  /////////////////////////////////////////////////////////
+  updateSignedDocument (envelopeId, documentId) {
+
+    const url = `/doc`
+
+    const data = {
+      envelopeId, 
+      documentId
+    }
+
+    return this.api.ajax({
+      url: url,
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      data: JSON.stringify(data)
+    })
   }
 }

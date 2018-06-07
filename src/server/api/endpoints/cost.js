@@ -149,22 +149,20 @@ module.exports = function() {
 
     } catch (ex) {
 
-      console.log(ex)
-
       res.status(ex.status || 500)
       res.json(ex)
     }
   })
 
-   ///////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////
   //
   //
   ///////////////////////////////////////////////////////////////////
-  router.get('/sign/:urn', async (req, res) => {
+  router.post('/sign', async (req, res) => {
 
     try {
 
-      const {urn} = req.params
+      const {email, urn} = req.body
 
       const bimCostSvc = ServiceManager.getService('BIMCostSvc')
 
@@ -200,17 +198,55 @@ module.exports = function() {
     
       const pdfBase64 = Buffer.from(pdfBytes).toString('base64')
     
-      const signerEmail = 'philippe.leefsma@gmail.com'
-      const signerName = 'Dear Customer'
+      const name = 'Customer'
 
       const env = await docuSignSvc.requestSignatureOnDocument(
-        signerName, signerEmail, 'doc.pdf', pdfBase64)
+        name, email, 'doc.pdf', pdfBase64)
 
       res.json(env)
       
     } catch (ex) {
 
+      res.status(ex.status || 500)
+      res.json(ex)
+    }
+  })
+
+  ///////////////////////////////////////////////////////////////////
+  //
+  //
+  ///////////////////////////////////////////////////////////////////
+  router.get('/doc/:envelopeId/:documentId', async (req, res) => {
+
+    try {
+
+      const {envelopeId, documentId} = req.params
+
+      const bimCostSvc = ServiceManager.getService('BIMCostSvc')
+
+      const tokenRes = await bimCostSvc.getAccessToken ()
+
+      const oauthRes = await bimCostSvc.getOAuthToken (
+        tokenRes.access_token)
+
+      const docuSignSvc = ServiceManager.getService('DocuSignSvc')
+
+      const data = await docuSignSvc.getDocument(
+         envelopeId, documentId)  
+
+      const pdf = path.join(
+        __dirname, 
+        '../../../../TMP',
+        'doc.pdf')  
+
+      await saveToDisk (new Buffer(data, 'binary'), pdf)  
+
+      res.download(pdf)
+
+    } catch (ex) {
+
       console.log(ex)
+
       res.status(ex.status || 500)
       res.json(ex)
     }

@@ -85,6 +85,11 @@ export default class EmailInput extends React.Component {
     this.setState({
       email
     })
+
+    if (this.props.onChange) {
+      
+      this.props.onChange(email)
+    }
   }
 
   /////////////////////////////////////////////////////////
@@ -95,7 +100,7 @@ export default class EmailInput extends React.Component {
 
     return (
       <ContentEditable
-      onKeyDown={(e) => this.onKeyDown(e, 'Text')}
+        onKeyDown={(e) => this.onKeyDown(e, 'Text')}
         onChange={(e) => this.onInputChanged(e)}
         data-placeholder="Enter recipient's email ..."
         className="input email"
