@@ -35,30 +35,6 @@ module.exports = function() {
   //
   //
   ///////////////////////////////////////////////////////////////////
-  router.get('/token', async (req, res) => {
-
-    try {
-
-      const bimCostSvc = ServiceManager.getService('BIMCostSvc')
-
-      const tokenRes = await bimCostSvc.getAccessToken ()
-
-      const oauthRes = await bimCostSvc.getOAuthToken (
-        tokenRes.access_token)
-
-      res.json(oauthRes)
-
-    } catch (ex) {
-
-      res.status(ex.status || 500)
-      res.json(ex)
-    }
-  })
-
-  ///////////////////////////////////////////////////////////////////
-  //
-  //
-  ///////////////////////////////////////////////////////////////////
   router.get('/:containerId/scos', async (req, res) => {
 
     try {
@@ -112,42 +88,6 @@ module.exports = function() {
     } catch (ex) {
 
       console.log(ex)
-
-      res.status(ex.status || 500)
-      res.json(ex)
-    }
-  })
-
-  ///////////////////////////////////////////////////////////////////
-  //
-  //
-  ///////////////////////////////////////////////////////////////////
-  router.get('/doc/:urn', async (req, res) => {
-
-    try {
-
-      const {urn} = req.params
-
-      const bimCostSvc = ServiceManager.getService('BIMCostSvc')
-
-      const tokenRes = await bimCostSvc.getAccessToken ()
-
-      const oauthRes = await bimCostSvc.getOAuthToken (
-        tokenRes.access_token)
-
-      const url = await bimCostSvc.getSignedURL (
-        oauthRes.token, 
-        urn)  
-
-      const filename = path.join(
-        __dirname, '/TMP', 'test.docx')
-
-      bimCostSvc.getDocument (
-        oauthRes.token, url)      
-
-      res.end(url)
-
-    } catch (ex) {
 
       res.status(ex.status || 500)
       res.json(ex)
