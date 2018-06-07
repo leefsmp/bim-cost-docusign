@@ -189,8 +189,8 @@ export default class DocuSignSvc extends BaseSvc {
         signHere.setDocumentId('1')
         signHere.setPageNumber('1')
         signHere.setRecipientId('1')
-        signHere.setXPosition('400')
-        signHere.setYPosition('600')
+        signHere.setXPosition('450')
+        signHere.setYPosition('700')
       
         // can have multiple tabs
         const tabs = new docusign.Tabs()
