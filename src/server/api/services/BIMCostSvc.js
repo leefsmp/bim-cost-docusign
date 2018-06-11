@@ -115,7 +115,7 @@ export default class BIMCostSvc extends BaseSvc {
     })
   }
 
-   /////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////
   // 
   //
   /////////////////////////////////////////////////////////////////
@@ -166,21 +166,19 @@ export default class BIMCostSvc extends BaseSvc {
   // 
   //
   /////////////////////////////////////////////////////////////////
-  async putDocument (oauthToken, SCOId) {
-
-    //PUT https://developer.api.autodesk.com/cost-api/v1/containers/deaa1491-2270-11e8-bac2-09ae8cd6e1fb/documents/0f7aad14-04de-42af-a628-2c113956f2de
+  getOSSUrn (oauthToken, filename) {
 
     const url =
-      `${this._config.API_BASE_URL}/containers` + 
-      `/4fe80261-61b5-11e8-9b9c-8b974249ad4c` + 
-      `/documents?latest=true&associationId=${SCOId}`
-      
+    `${this._config.API_PORTAL_BASE_URL}` + 
+    `/wipdata-serv-qa/storage/v3/filestore/urn`
+    
     const headers = {
       Authorization: 'Bearer ' + oauthToken,
-      'Content-Type': 'application/vnd.api+json',
+      'Content-Type': 'application/json',
     }
 
     return requestAsync({
+      method: 'POST',
       json: true,
       headers,
       url
