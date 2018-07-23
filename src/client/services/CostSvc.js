@@ -79,8 +79,7 @@ export default class CostSvc extends BaseSvc {
     const data = {
       containerId,
       envelopeId, 
-      documentId,
-      scoId
+      documentId
     }
 
     return this.api.ajax({

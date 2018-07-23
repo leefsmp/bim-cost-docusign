@@ -5,6 +5,7 @@ bin/server
 .idea
 *.log
 dist
+TMP
 
 
 

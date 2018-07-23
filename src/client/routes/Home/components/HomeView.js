@@ -112,6 +112,7 @@ class SCO extends React.Component {
             this.onDocumentSigned(signRes.envelopeId)
             clearInterval(intervalId)
             notification.title = 'Signature completed !'
+            notification.status = 'success'
             notification.message = ''
             notification.buttons = [{
               name: 'Download',

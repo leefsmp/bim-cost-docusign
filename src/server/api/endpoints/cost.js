@@ -217,6 +217,8 @@ module.exports = function() {
 
     try {
 
+      res.json('pending ...')
+
       const {
         containerId, 
         documentId,
@@ -243,7 +245,7 @@ module.exports = function() {
 
       const fileName = 'signedDocument.pdf'
 
-      const urn = await docuSignSvc.getOSSUrn (
+      const urn = await bimCostSvc.getOSSUrn (
         oauthRes.token, fileName)
 
       const parsedUrn = parseUrn(urn) 
@@ -256,7 +258,7 @@ module.exports = function() {
         parsedUrn.objectName, 
         binaryData)  
 
-      const folder = await docuSignSvc.getAttachmentFolder (
+      const folder = await bimCostSvc.getAttachmentFolder (
         oauthRes.token, containerId)
 
       const projectId = '2ea5c688-74d1-43e7-a79f-c9ea60a9ad52'
@@ -278,9 +280,12 @@ module.exports = function() {
         versionId, 
         fileName)
 
-      res.json('Ok')
-      
+      console.log(attach)  
+
     } catch (ex) {
+
+      console.log('EX:')
+      console.log(ex)
 
       res.status(ex.status || 500)
       res.json(ex)
