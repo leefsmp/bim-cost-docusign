@@ -1,8 +1,6 @@
 
-import ServiceManager from './SvcManager'
 import docusign from 'docusign-esign'
 import BaseSvc from './BaseSvc'
-import fs from 'fs'
 
 export default class DocuSignSvc extends BaseSvc {
 

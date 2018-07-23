@@ -1,8 +1,19 @@
 
-# About this sample
+## Setup
 
-Nothing for now, keep moving ...
+. npm install
+. npm start
 
+## Required ENV variables
+
+. DOCUSIGN_CLIENTID
+. DOCUSIGN_USERNAME
+. DOCUSIGN_PASSWORD 
+. DOCUSIGN_ACCOUNTID
+. BIM_USERNAME
+. BIM_PASSWORD
+. NODE_ENV
+. HOT_RELOADING
 
 ## About the Author
 

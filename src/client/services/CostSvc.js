@@ -70,13 +70,17 @@ export default class CostSvc extends BaseSvc {
   //
   //
   /////////////////////////////////////////////////////////
-  updateSignedDocument (envelopeId, documentId) {
+  updateSignedDocument (
+    envelopeId, documentId,
+    scoId, containerId = '4fe80261-61b5-11e8-9b9c-8b974249ad4c') {
 
     const url = `/doc`
 
     const data = {
+      containerId,
       envelopeId, 
-      documentId
+      documentId,
+      scoId
     }
 
     return this.api.ajax({

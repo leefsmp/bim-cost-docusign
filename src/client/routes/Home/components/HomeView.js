@@ -47,13 +47,16 @@ class SCO extends React.Component {
   /////////////////////////////////////////////////////////////////
   async onDocumentSigned (envelopeId) {
 
+    const scoId = this.props.sco.id
+
     const res = 
       await this.props.docusignSvc.getDocuments(
         envelopeId)
 
     const documentId = res.envelopeDocuments[0].documentId
 
-    
+    this.props.costSvc.updateSignedDocument(
+      envelopeId, documentId, scoId)
   }
 
   /////////////////////////////////////////////////////////////////
@@ -70,8 +73,6 @@ class SCO extends React.Component {
 
     const url = this.props.docusignSvc.getSignedDocumentURL(
       envelopeId, documentId)
-
-    console.log(url)  
 
     const link = document.createElement('a')
 
@@ -112,13 +113,18 @@ class SCO extends React.Component {
             clearInterval(intervalId)
             notification.title = 'Signature completed !'
             notification.message = ''
-            //notification.dismissAfter = 10000
             notification.buttons = [{
               name: 'Download',
               onClick: () => {
                 notification.dismissAfter = 1
                 this.props.notifySvc.update(notification)
                 this.downloadDocument(signRes.envelopeId)
+              }
+            }, {
+              name: 'Close',
+              onClick: () => {
+                notification.dismissAfter = 1
+                this.props.notifySvc.update(notification)
               }
             }]
             this.props.notifySvc.update(notification)

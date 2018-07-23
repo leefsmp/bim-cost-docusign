@@ -1,7 +1,8 @@
 
 import ServiceManager from '../services/SvcManager'
 import docxConverter from 'docx-pdf'
-import express from 'express'
+import {Router} from 'express'
+import mzfs from 'mz/fs'
 import path from 'path'
 import fs from 'fs'
 
@@ -26,10 +27,33 @@ const converToPDF = (input, output) => {
   })
 }
 
+const parseUrn = (urn) => {
+  const tmp = urn.replace('urn:adsk.objects:os.object:', '')
+  const res = tmp.split('/')
+  return {
+    bucketName: res[0],
+    objectName: res[1]
+  }
+}
+
+const guid = (format='xxxxxxxxxxxx') => {
+
+  var d = new Date().getTime()
+
+  var guid = format.replace(
+    /[xy]/g,
+    function (c) {
+      var r = (d + Math.random() * 16) % 16 | 0
+      d = Math.floor(d / 16)
+      return (c == 'x' ? r : (r & 0x7 | 0x8)).toString(16)
+    })
+
+  return guid
+}
 
 module.exports = function() {
 
-  var router = express.Router()
+  var router = Router()
 
   ///////////////////////////////////////////////////////////////////
   //
@@ -87,8 +111,6 @@ module.exports = function() {
 
     } catch (ex) {
 
-      console.log(ex)
-
       res.status(ex.status || 500)
       res.json(ex)
     }
@@ -118,7 +140,7 @@ module.exports = function() {
       const filename = path.join(
         __dirname, 
         '../../../../TMP',
-        'doc.docx')
+        `${guid()}.docx`)
 
       const data = await bimCostSvc.getDocument (
         oauthRes.token, url) 
@@ -128,7 +150,7 @@ module.exports = function() {
       const pdf = path.join(
         __dirname, 
         '../../../../TMP',
-        'doc.pdf')
+        `${guid()}.pdf`)
 
       await converToPDF(filename, pdf)  
 
@@ -166,9 +188,6 @@ module.exports = function() {
 
       const tokenRes = await bimCostSvc.getAccessToken ()
 
-      const oauthRes = await bimCostSvc.getOAuthToken (
-        tokenRes.access_token)
-
       const docuSignSvc = ServiceManager.getService('DocuSignSvc')
 
       const data = await docuSignSvc.getDocument(
@@ -177,7 +196,7 @@ module.exports = function() {
       const pdf = path.join(
         __dirname, 
         '../../../../TMP',
-        'doc.pdf')  
+        `${guid()}.pdf`)  
 
       await saveToDisk (new Buffer(data, 'binary'), pdf)  
 
@@ -185,12 +204,158 @@ module.exports = function() {
 
     } catch (ex) {
 
-      console.log(ex)
+      res.status(ex.status || 500)
+      res.json(ex)
+    }
+  })
+
+  ///////////////////////////////////////////////////////////////////
+  //
+  //
+  ///////////////////////////////////////////////////////////////////
+  router.post('/doc', async (req, res) => {
+
+    try {
+
+      const {
+        containerId, 
+        documentId,
+        envelopeId
+      } = req.body
+
+      const bimCostSvc = ServiceManager.getService('BIMCostSvc')
+
+      const tokenRes = await bimCostSvc.getAccessToken ()
+
+      const oauthRes = await bimCostSvc.getOAuthToken (
+        tokenRes.access_token)
+
+      const docuSignSvc = ServiceManager.getService('DocuSignSvc')
+
+      const data = await docuSignSvc.getDocument(
+         envelopeId, documentId)  
+
+      // No need to save to disk 
+
+      // const pdf = path.join(__dirname, '../../../../TMP', `${guid()}.pdf`)  
+
+      // await saveToDisk (new Buffer(data, 'binary'), pdf) 
+
+      const fileName = 'signedDocument.pdf'
+
+      const urn = await docuSignSvc.getOSSUrn (
+        oauthRes.token, fileName)
+
+      const parsedUrn = parseUrn(urn) 
+
+      const binaryData = new Buffer(data, 'binary')
+
+      const oss = await bimCostSvc.uploadToOSS (
+        oauthRes.token, 
+        parsedUrn.bucketName, 
+        parsedUrn.objectName, 
+        binaryData)  
+
+      const folder = await docuSignSvc.getAttachmentFolder (
+        oauthRes.token, containerId)
+
+      const projectId = '2ea5c688-74d1-43e7-a79f-c9ea60a9ad52'
+
+      const move = await bimCostSvc.moveToDocsFolder (
+        oauthRes.token, 
+        projectId, 
+        folder.data.urn, 
+        urn, fileName) 
+
+      const versionId = move.data.relationships.created.data[1].id
+
+      const folderId = folder.data.id
+       
+      const attach = await bimCostSvc.attachToFolder (
+        oauthRes.token, 
+        containerId, 
+        folderId, 
+        versionId, 
+        fileName)
+
+      res.json('Ok')
+      
+    } catch (ex) {
 
       res.status(ex.status || 500)
       res.json(ex)
     }
   })
+
+  ///////////////////////////////////////////////////////////////////
+  //
+  //
+  ///////////////////////////////////////////////////////////////////
+  // router.get('/test', async (req, res) => {
+
+  //   try {
+
+  //     const containerId = '4fe80261-61b5-11e8-9b9c-8b974249ad4c'
+
+  //     const bimCostSvc = ServiceManager.getService('BIMCostSvc')
+
+  //     const tokenRes = await bimCostSvc.getAccessToken ()
+
+  //     const oauthRes = await bimCostSvc.getOAuthToken (
+  //       tokenRes.access_token)
+
+  //     const folder = await bimCostSvc.getAttachmentFolder (
+  //       oauthRes.token, containerId)
+        
+  //     //console.log(folder)
+
+  //     const urn = await bimCostSvc.getOSSUrn (
+  //        oauthRes.token, 'test.pdf')
+
+  //     const parsedUrn = parseUrn(urn)   
+
+  //     const data = await mzfs.readFile(path.join(
+  //       __dirname, '../../../../TMP', `6f677f16a751.pdf`))  
+
+  //     const fileName = 'test.pdf' 
+
+  //     const oss = await bimCostSvc.uploadToOSS (
+  //       oauthRes.token, 
+  //       parsedUrn.bucketName, 
+  //       parsedUrn.objectName, 
+  //       data)  
+
+  //     const move = await bimCostSvc.moveToDocsFolder (
+  //       oauthRes.token, 
+  //       '2ea5c688-74d1-43e7-a79f-c9ea60a9ad52', 
+  //       folder.data.urn, 
+  //       urn, fileName) 
+
+  //     const versionId = move.data.relationships.created.data[1].id
+  //     const folderId = folder.data.id
+     
+  //     console.log('folderId: ' + folderId)
+  //     console.log('versionId: ' + versionId)
+
+  //     const attach = await bimCostSvc.attachToFolder (
+  //       oauthRes.token, 
+  //       containerId, 
+  //       folderId, 
+  //       versionId, 
+  //       fileName)
+
+  //     console.log(attach)
+
+  //     res.json('ok')
+      
+  //   } catch (ex) {
+
+  //     console.log('EX: ', ex)
+
+  //     res.status(ex.status || 500)
+  //     res.json(ex)
+  //   }
+  // })
 
   return router
 }

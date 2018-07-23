@@ -12,6 +12,27 @@ module.exports = function() {
   //
   //
   ///////////////////////////////////////////////////////////////////
+  // router.get('/account', async (req, res) => {
+
+  //   try {
+
+  //     const docuSignSvc = ServiceManager.getService('DocuSignSvc')
+
+  //     const info = await docuSignSvc.doLogin()
+
+  //     res.json(info)
+     
+  //   } catch (ex) {
+
+  //     res.status(ex.status || 500)
+  //     res.json(ex)
+  //   }
+  // })
+
+  ///////////////////////////////////////////////////////////////////
+  //
+  //
+  ///////////////////////////////////////////////////////////////////
   router.get('/envelopes/:envelopeId', async (req, res) => {
 
     try {

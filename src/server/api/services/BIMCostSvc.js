@@ -1,7 +1,71 @@
 
-import ServiceManager from './SvcManager'
 import BaseSvc from './BaseSvc'
 import request from 'request'
+
+const createDMPayload = (folderId, urn, fileName) => {
+
+  return {
+    data: {
+        type: "commands",
+        attributes: {
+            extension: {
+                type: "commands:autodesk.core:Upload",
+                version: "1.0.0"
+            }
+        },
+        relationships: {
+            resources: {
+                data: [{
+                    type: "versions",
+                    id: "1"
+                }]
+            }
+        }
+    },
+    included: [{
+        type: "items",
+        id: "1",
+        attributes: {
+            extension: {
+                type: "items:autodesk.bim360:File",
+                version: "1.0"
+            }
+        },
+        relationships: {
+            tip: {
+                data: {
+                    "type": "versions",
+                    "id": "1"
+                }
+            },
+            parent: {
+                data: {
+                    type: "folders",
+                    id: folderId
+                }
+            }
+        }
+    }, {
+        type: "versions",
+        id: "1",
+        attributes: {
+            name: fileName,
+            extension: {
+                type: "versions:autodesk.bim360:File",
+                version: "1.0"
+            }
+        },
+        relationships: {
+            storage: {
+                data: {
+                    type: "objects",
+                    id: urn
+                }
+            }
+        }
+    }]
+  }
+}
 
 export default class BIMCostSvc extends BaseSvc {
 
@@ -164,21 +228,141 @@ export default class BIMCostSvc extends BaseSvc {
 
   /////////////////////////////////////////////////////////////////
   // 
-  //
+  //https://wiki.autodesk.com/display/PLMDM/OSS+Workflows
   /////////////////////////////////////////////////////////////////
-  getOSSUrn (oauthToken, filename) {
+  getOSSUrn (oauthToken, fileName) {
 
+    //https://developer-stg.api.autodesk.com/wipdata-serv-qa/storage/v3/filestore/urn
     const url =
-    `${this._config.API_PORTAL_BASE_URL}` + 
-    `/wipdata-serv-qa/storage/v3/filestore/urn`
+      `${this._config.API_PORTAL_BASE_URL}` + 
+      `/wipdata-serv-qa/storage/v3/filestore/urn`
     
     const headers = {
       Authorization: 'Bearer ' + oauthToken,
       'Content-Type': 'application/json',
     }
 
+    const body = JSON.stringify({
+      'storageType': 'OSS',
+      'fileName': fileName
+    })
+
     return requestAsync({
       method: 'POST',
+      headers,
+      body,
+      url
+    })
+  }
+
+  /////////////////////////////////////////////////////////////////
+  // 
+  //https://wiki.autodesk.com/pages/viewpage.action?pageId=372902120#Attachmentupload/download-Backend(Servicetoservice):
+  /////////////////////////////////////////////////////////////////
+  getAttachmentFolder (oauthToken, containerId) {
+
+    //https://developer-stg.api.autodesk.com/cost-api-dev/v1/containers/244f5c91-2365-11e8-acb6-31592ee4127d/attachmentFolders
+    const url =
+    `${this._config.API_PORTAL_BASE_URL}` + 
+    `/cost-api-dev/v1/containers/${containerId}/attachmentFolders`
+    
+    const headers = {
+      Authorization: 'Bearer ' + oauthToken,
+      'Content-Type': 'application/json',
+    }
+
+    const body = {
+      scope: 'FormInstance-35e35c10-37ae-11e8-9997-49e2bf0eaae6'
+    }
+
+    return requestAsync({
+      method: 'POST',
+      json: true,
+      headers,
+      body,
+      url
+    })
+  }
+
+  /////////////////////////////////////////////////////////////////
+  // 
+  //
+  /////////////////////////////////////////////////////////////////
+  async uploadToOSS (oauthToken, bucketName, objectName, data) {
+
+    //PUT https://developer-stg.api.autodesk.com/oss/v2/buckets/wip.dm.qa/objects/xxxx.docx
+     const url =
+      `${this._config.API_PORTAL_BASE_URL}` + 
+      `/oss/v2/buckets/${bucketName}/objects/${objectName}`
+    
+    const headers = {
+      Authorization: 'Bearer ' + oauthToken
+    }
+
+    return requestAsync({
+      method: 'PUT',
+      body: data,
+      headers,
+      url
+    })
+  }
+
+  /////////////////////////////////////////////////////////////////
+  // 
+  //
+  /////////////////////////////////////////////////////////////////
+  moveToDocsFolder (oauthToken, projectId, folderId, urn, fileName) {
+
+    //POST https://developer-stg.api.autodesk.com/dm-staging/v1/cmd-dev/projects/{projectId}/commands
+    const url =
+      `${this._config.API_PORTAL_BASE_URL}` + 
+      `/dm-staging/v1/cmd-dev/projects/${projectId}/commands`
+    
+    const headers = {
+      Authorization: 'Bearer ' + oauthToken,
+      'Content-Type': 'application/json'
+    }
+
+    const body = 
+      createDMPayload(
+        folderId, urn, fileName)
+
+    return requestAsync({
+      method: 'POST',
+      json: true,
+      headers,
+      body,
+      url
+    })
+  }
+
+  /////////////////////////////////////////////////////////////////
+  // 
+  //
+  /////////////////////////////////////////////////////////////////
+  attachToFolder (oauthToken, containerId, folderId, versionId, fileName) {
+
+    //POST https://developer-stg.api.autodesk.com/cost-api-dev/v1/containers/{containerId}/attachments
+     const url =
+      `${this._config.API_PORTAL_BASE_URL}` + 
+      `/cost-api-dev/v1/containers/${containerId}/attachments`
+    
+    const headers = {
+      Authorization: 'Bearer ' + oauthToken,
+      'Content-Type': 'application/json'
+    }
+
+    const payload = {
+      associationId: "35e35c10-37ae-11e8-9997-49e2bf0eaae6",
+      associationType: "Contract",
+      urn: versionId,
+      name: fileName,
+      folderId
+    }
+
+    return requestAsync({
+      method: 'POST',
+      body: payload,
       json: true,
       headers,
       url
@@ -192,19 +376,17 @@ export default class BIMCostSvc extends BaseSvc {
 /////////////////////////////////////////////////////////////////
 function requestAsync(params) {
 
-  return new Promise( function(resolve, reject) {
+  return new Promise((resolve, reject) => {
 
-    request({
-
-      url: params.url,
-      method: params.method || 'GET',
-      headers: params.headers || {
+    const _params = {
+      headers: {
         'Authorization': 'Bearer ' + params.token
       },
-      json: params.json,
-      body: params.body
+      method: 'GET',
+      ...params
+    }
 
-    }, function (err, response, body) {
+    request(_params, (err, response, body)  =>{
 
       try {
 
@@ -234,8 +416,6 @@ function requestAsync(params) {
           console.log('status error: ' +
             response.statusCode)
 
-          console.log(response.statusMessage)
-
           return reject(response.statusMessage)
         }
 
@@ -243,14 +423,9 @@ function requestAsync(params) {
 
       } catch(ex){
 
-        console.log(params.url)
-        console.log(ex)
-
         return reject(ex)
       }
     })
   })
 }
-
-
 
