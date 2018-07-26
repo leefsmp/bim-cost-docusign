@@ -216,6 +216,9 @@ export default class BIMCostSvc extends BaseSvc {
         headers: {
           Authorization: 'Bearer ' + oauthToken
         },
+        agentOptions: {
+          secureProtocol: 'TLSv1_2_method' // 'TLSv1.2'
+        },
         encoding: null
       }, (err, response, data) => {
 
@@ -381,6 +384,9 @@ function requestAsync(params) {
     const _params = {
       headers: {
         'Authorization': 'Bearer ' + params.token
+      },
+      agentOptions: {
+        secureProtocol: 'TLSv1_2_method' // 'TLSv1.2'
       },
       method: 'GET',
       ...params
