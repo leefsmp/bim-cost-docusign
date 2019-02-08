@@ -123,12 +123,14 @@ module.exports = function() {
   router.post('/sign', async (req, res) => {
 
     try {
-
-      const {email, urn} = req.body
-
+      
+      const {email, urn, authCode} = req.body
+      
       const bimCostSvc = ServiceManager.getService('BIMCostSvc')
 
       const tokenRes = await bimCostSvc.getAccessToken ()
+      const docuSignSvc = ServiceManager.getService('DocuSignSvc')
+      const dsToken = await docuSignSvc.getAccessToken(authCode)
 
       const oauthRes = await bimCostSvc.getOAuthToken (
         tokenRes.access_token)
@@ -154,16 +156,15 @@ module.exports = function() {
 
       await converToPDF(filename, pdf)  
 
-      const docuSignSvc = ServiceManager.getService('DocuSignSvc')
 
       const pdfBytes = fs.readFileSync(pdf)
     
       const pdfBase64 = Buffer.from(pdfBytes).toString('base64')
     
       const name = 'Customer'
-
+    
       const env = await docuSignSvc.requestSignatureOnDocument(
-        name, email, 'doc.pdf', pdfBase64)
+        name, email, 'doc.pdf', pdfBase64, dsToken)
 
       res.json(env)
       
