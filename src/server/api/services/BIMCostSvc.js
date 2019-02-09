@@ -142,7 +142,7 @@ export default class BIMCostSvc extends BaseSvc {
 
     const url =
       `${this._config.API_BASE_URL}/containers/` + 
-      `${containerId}/changeorders/sco`
+      `${containerId}/change-orders/sco`
       
     const headers = {
       Authorization: 'Bearer ' + oauthToken,

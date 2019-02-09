@@ -4,6 +4,7 @@ import EmailInput from 'EmailInput'
 import ClientAPI from 'ClientAPI' 
 import React from 'react'
 import './HomeView.scss'
+import queryString from 'query-string';
 
 class SCO extends React.Component {
 
@@ -34,10 +35,11 @@ class SCO extends React.Component {
     const scoId = this.props.sco.id
 
     const res = await this.props.costSvc.getDocInfo(scoId)
-
+    // const email = sessionStorage.getItem('email');
     this.setState({
       ...this.state,
-      docURN: res.data[0].urn,
+      docURN: res[0].urn,
+      // email: email,
     })
   }
 
@@ -86,11 +88,35 @@ class SCO extends React.Component {
   //
   /////////////////////////////////////////////////////////////////
   async onRequestSignature () {
-
+    const parsed = queryString.parse(location.search);
+    const authCode = parsed.code    
+    if(authCode){
+      console.log('fire the gun')
+      this.onDocusignOAuth(authCode)
+    } else {      
+      sessionStorage.setItem("email", this.state.email);
+      sessionStorage.setItem("urn", this.state.docURN);
+      window.location = "https://account-d.docusign.com/oauth/auth?response_type=code&scope=signature%20impersonation&client_id=dd177b57-e769-4ef2-9092-00fe27c266cf&redirect_uri=http://localhost:3000";
+      const sco = this.props.sco
+  
+      const notification = this.props.notifySvc.add({
+        title: 'Connecting to Docusign ...',
+        message: 'Please wait',
+        dismissible: false,
+        status: 'loading',
+        dismissAfter: 0,
+        position: 'tl',
+        id: sco.id
+      })
+      this.props.notifySvc.update(notification)
+    }
+  }
+  async onDocusignOAuth(authCode) {
+    const email = sessionStorage.getItem('email');
+    const urn = sessionStorage.getItem('urn');
     const sco = this.props.sco
-
     const notification = this.props.notifySvc.add({
-      title: 'Connecting to Docusign ...',
+      title: 'Requesting signature ...',
       message: 'Please wait',
       dismissible: false,
       status: 'loading',
@@ -98,12 +124,10 @@ class SCO extends React.Component {
       position: 'tl',
       id: sco.id
     })
-
-    this.props.notifySvc.update(notification)
-
     const signRes = await this.props.costSvc.requestSignature(
-      this.state.email,
-      this.state.docURN)
+      email,
+      urn,
+      authCode)
 
     const intervalId = setInterval(() => {
       this.props.docusignSvc.getEnvelope(
@@ -203,7 +227,7 @@ class HomeView extends React.Component {
     
     this.costSvc.getSCOs().then((res) => {
       this.setState({
-        scos: res.data
+        scos: res.results
       })
     })
 

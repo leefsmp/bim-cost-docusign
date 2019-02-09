@@ -46,13 +46,14 @@ export default class CostSvc extends BaseSvc {
   //
   //
   /////////////////////////////////////////////////////////
-  requestSignature (email, urn) {
+  requestSignature (email, urn, authCode) {
 
     const url = `/sign`
 
     const data = {
       email,
-      urn
+      urn,
+      authCode
     }
 
     return this.api.ajax({

@@ -73,16 +73,14 @@ app.use(helmet())
 ///////////////////////////////////////////////////////////
 const docuSignSvc = new DocuSignSvc({
   credentials: {
-    IntegratorKey: process.env.DOCUSIGN_CLIENTID,
-    Username:  process.env.DOCUSIGN_USERNAME,
-    Password:  process.env.DOCUSIGN_PASSWORD
+    IntegratorKey: process.env.DOCUSIGN_CLIENTID
   },
   basePath: 'https://demo.docusign.net/restapi',
   accountId:  process.env.DOCUSIGN_ACCOUNTID
 })
 
 const bimCostSvc = new BIMCostSvc({
-  API_BASE_URL: 'https://developer-stg.api.autodesk.com/cost-api-dev/v1',
+  API_BASE_URL: 'https://developer-stg.api.autodesk.com/cost-dev/v1',
   API_PORTAL_BASE_URL: 'https://developer-stg.api.autodesk.com',
   APP_BASE_URL: 'https://docs.b360-dev.autodesk.com',
   username: process.env.BIM_USERNAME,
